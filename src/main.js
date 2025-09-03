@@ -124,8 +124,8 @@ function analyzeSalesData(data, options) {
         name: seller.name,
         revenue: +seller.revenue.toFixed(2),
         profit: +seller.profit.toFixed(2),
-        sales_count: +seller.sales_count,
-        top_products: +seller.top_products,
+        sales_count: seller.sales_count,
+        top_products: seller.top_products,
         bonus: +seller.bonus.toFixed(2)
     }));
 }
