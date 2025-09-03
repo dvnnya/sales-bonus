@@ -20,10 +20,12 @@ function calculateSimpleRevenue(purchase, _product) {
  * @returns {number} коэффициент бонуса (доля от прибыли)
  */
 function calculateBonusByProfit(index, total, seller) {
-    if (index === 0) return 0.15;          // 1 место
-    if (index === 1 || index === 2) return 0.10; // 2 и 3 место
+    const { profit } = seller
+
+    if (index === 0) return profit * 0.15;          // 1 место
+    if (index === 1 || index === 2) return profit * 0.10; // 2 и 3 место
     if (index === total - 1) return 0.0;   // последнее место
-    return 0.05;                           // все остальные
+    return profit * 0.05;                           // все остальные
 }
 
 const options = {
@@ -80,7 +82,8 @@ function analyzeSalesData(data, options) {
         if (!seller) return;
 
         seller.sales_count += 1;
-        seller.revenue += record.total_amount - record.total_discount;
+
+        let recordReveneu = 0;
 
         record.items.forEach(item => {
             const product = productIndex[item.sku];
@@ -91,10 +94,13 @@ function analyzeSalesData(data, options) {
             const profit = revenue - cost;
 
             seller.profit += profit;
+            recordReveneu += revenue;
 
             if (!seller.products_sold[item.sku]) seller.products_sold[item.sku] = 0;
             seller.products_sold[item.sku] += item.quantity;
         });
+
+        seller.revenue += recordReveneu
     });
 
     // Сортировка продавцов по прибыли
@@ -104,8 +110,7 @@ function analyzeSalesData(data, options) {
 
     // Назначение бонусов и топ-10 товаров
     sellerStats.forEach((seller, index) => {
-        const bonusPercent = calculateBonus(index, totalSellers, seller);
-        seller.bonus = seller.profit * bonusPercent;
+        seller.bonus = calculateBonus(index, totalSellers, seller)
 
         seller.top_products = Object.entries(seller.products_sold)
             .map(([sku, quantity]) => ({ sku, quantity }))
